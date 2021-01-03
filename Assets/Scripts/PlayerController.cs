@@ -4,15 +4,20 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
+using UnityEngine.UI;
+using System;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Agent
 {
     // Start is called before the first frame update
     Rigidbody rb;
+    public bool useVecObs;
     public float speed;
+    public Text count_text;
     float movex = 0;
     float movez = 0;
     public float maxSpeed;
+    public int junk_collected = 0;
     void Start()
     {
         rb = this.GetComponent<Rigidbody>();
@@ -73,5 +78,22 @@ public class PlayerController : MonoBehaviour
         {
 
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag.Equals("Junk"))
+        {
+            Debug.Log("Munnezza presa");
+            GameObject app = other.gameObject;
+            Destroy(app);
+            junk_collected += 1;
+            setCountText(junk_collected);
+        }
+    }
+
+    private void setCountText ( int number)
+    {
+        count_text.text = ""+number;
     }
 }
