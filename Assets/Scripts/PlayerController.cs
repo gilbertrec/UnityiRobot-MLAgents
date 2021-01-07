@@ -18,6 +18,8 @@ public class PlayerController : Agent
     float movez = 0;
     public float maxSpeed;
     public int junk_collected = 0;
+    public bool isMoving;
+    public GameObject hm_obj;
     void Start()
     {
         rb = this.GetComponent<Rigidbody>();
@@ -53,6 +55,20 @@ public class PlayerController : Agent
         Vector3 v =(transform.forward *-movez);
         this.transform.Rotate(0,movex,0);
         rb.AddForce(v * speed);
+        if(v == Vector3.zero)
+        {
+            isMoving = false;
+            
+
+
+        }else
+        {
+            isMoving = true;
+            HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
+            hm_render.hm.AddPoint((int)((48-rb.transform.position.x)), (int)((20-rb.transform.position.z)));
+            hm_render.toUpdate = true;
+        }
+        
     }
     private void FixedUpdate()
     {
@@ -61,6 +77,8 @@ public class PlayerController : Agent
             rb.velocity = rb.velocity.normalized * maxSpeed;
         }
     }
+
+    
 
     private void OnCollisionEnter(Collision collision)
     {

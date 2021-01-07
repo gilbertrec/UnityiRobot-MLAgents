@@ -8,7 +8,8 @@ public class HeatMapRenderer : MonoBehaviour
     public Texture2D textref;
     public RenderTexture rt;
     public Camera test_c;
-    private Heatmap hm;
+    public Heatmap hm;
+    public bool toUpdate = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,7 +18,7 @@ public class HeatMapRenderer : MonoBehaviour
         GradientAlphaKey[] alphaKey;
 
         Gradient gradient = new Gradient();
-        hm = new Heatmap(50, 50);
+        hm = new Heatmap(97, 68);
         // Populate the color keys at the relative time 0 and 1 (0 and 100%)
         colorKey = new GradientColorKey[2];
         colorKey[0].color = Color.red;
@@ -44,7 +45,7 @@ public class HeatMapRenderer : MonoBehaviour
         }
 
         textref = hm.GetImage();
-        textref.SetPixel(40, 40, new Color(0f, 0f, 1.0f, 1.0f));
+        textref.SetPixel(1, 1, new Color(0f, 0f, 1.0f, 1.0f));
         textref.Apply();
         GetComponent<Renderer>().material.mainTexture = textref;
         Graphics.Blit(textref, rt);
@@ -53,7 +54,13 @@ public class HeatMapRenderer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       
+        if (toUpdate)
+        {
+            textref = hm.GetImage();
+            GetComponent<Renderer>().material.mainTexture = textref;
+            Graphics.Blit(textref, rt);
+            toUpdate = false;
+        }
 
        
     }
