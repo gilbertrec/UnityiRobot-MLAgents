@@ -20,6 +20,7 @@ public class PlayerController : Agent
     public int junk_collected = 0;
     public bool isMoving;
     public GameObject hm_obj;
+    public Vector3 stored_position = Vector3.zero;
     void Start()
     {
         rb = this.GetComponent<Rigidbody>();
@@ -55,20 +56,25 @@ public class PlayerController : Agent
         Vector3 v =(transform.forward *-movez);
         this.transform.Rotate(0,movex,0);
         rb.AddForce(v * speed);
-        if(v == Vector3.zero)
+        if((this.transform.GetChild(0).position.x - stored_position.x) < 1f && (this.transform.GetChild(0).position.x - stored_position.x) > -1f && (this.transform.GetChild(0).position.z - stored_position.z) < 1f && (this.transform.GetChild(0).position.z - stored_position.z) > -1f)
         {
             isMoving = false;
-            
-
-
-        }else
+        }
+        else
         {
             isMoving = true;
             HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
-            hm_render.hm.AddPoint((int)((48-rb.transform.position.x)), (int)((20-rb.transform.position.z)));
+            hm_render.hm.AddPoint((int)((49 - rb.transform.position.x)), (int)((21 - rb.transform.position.z)));
+            /*Test for group of pixel
+            *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
+            */
             hm_render.toUpdate = true;
+
+            stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
         }
-        
+       // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
+       // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
+
     }
     private void FixedUpdate()
     {

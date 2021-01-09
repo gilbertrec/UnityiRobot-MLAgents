@@ -18,7 +18,7 @@ public class HeatMapRenderer : MonoBehaviour
         GradientAlphaKey[] alphaKey;
 
         Gradient gradient = new Gradient();
-        hm = new Heatmap(97, 68);
+        hm = new Heatmap(99, 70);
         // Populate the color keys at the relative time 0 and 1 (0 and 100%)
         colorKey = new GradientColorKey[2];
         colorKey[0].color = Color.red;
@@ -39,13 +39,9 @@ public class HeatMapRenderer : MonoBehaviour
         
         textref = new Texture2D(rt.height, rt.width, TextureFormat.RGBA32, false);
         RenderTexture.active = rt;
-        for (int i = 0; i < 4; i++)
-        {
-            hm.AddPoint(10, 10);
-        }
-
+        
         textref = hm.GetImage();
-        textref.SetPixel(1, 1, new Color(0f, 0f, 1.0f, 1.0f));
+        textref.SetPixel(0, 0, new Color(0f, 0f, 1.0f, 1.0f));
         textref.Apply();
         GetComponent<Renderer>().material.mainTexture = textref;
         Graphics.Blit(textref, rt);
@@ -56,7 +52,16 @@ public class HeatMapRenderer : MonoBehaviour
     {
         if (toUpdate)
         {
+            
             textref = hm.GetImage();
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    textref.SetPixel(30 + i, 30 + j, new Color(1.0f, 0.64f, 0f, 1.0f));
+                }
+            }
+            textref.Apply();
             GetComponent<Renderer>().material.mainTexture = textref;
             Graphics.Blit(textref, rt);
             toUpdate = false;
