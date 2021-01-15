@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Heatmap
+public class Heatmapv2
 {
     
     private float[,] map;
@@ -12,7 +12,7 @@ public class Heatmap
     // returns the highest sample
   
 
-    public Heatmap(int aWidth, int aHeight )
+    public Heatmapv2(int aWidth, int aHeight )
     {
         width = aWidth;
         height = aHeight;

@@ -1,35 +1,39 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
+using Unity.MLAgents.Actuators;
 using UnityEngine.UI;
-using System;
 
 public class PlayerController : Agent
 {
     // Start is called before the first frame update
     Rigidbody rb;
-    public bool useVecObs;
+
     public float speed;
-    public Text count_text;
+    public float maxSpeed;
+
     float movex = 0;
     float movez = 0;
-    public float maxSpeed;
+
     public int junk_collected = 0;
+    public Text count_text; //display junk collected
+
     public bool isMoving;
     public GameObject hm_obj;
     public Vector3 stored_position = Vector3.zero;
-    void Start()
+   
+    
+    private void Start()
     {
         rb = this.GetComponent<Rigidbody>();
         rb.velocity=new Vector3(2, 0, 2);
        
     }
 
+   
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
             movex = Input.GetAxis("Horizontal");
 
@@ -116,7 +120,7 @@ public class PlayerController : Agent
         }
     }
 
-    private void setCountText ( int number)
+    void setCountText ( int number)
     {
         count_text.text = ""+number;
     }

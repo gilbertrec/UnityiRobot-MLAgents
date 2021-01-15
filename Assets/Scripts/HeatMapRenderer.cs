@@ -54,13 +54,6 @@ public class HeatMapRenderer : MonoBehaviour
         {
             
             textref = hm.GetImage();
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
-                {
-                    textref.SetPixel(30 + i, 30 + j, new Color(1.0f, 0.64f, 0f, 1.0f));
-                }
-            }
             textref.Apply();
             GetComponent<Renderer>().material.mainTexture = textref;
             Graphics.Blit(textref, rt);
