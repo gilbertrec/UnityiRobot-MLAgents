@@ -4,6 +4,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using UnityEngine.UI;
+using System;
 
 public class PlayerAgent_2_heatmap : Agent
 {
@@ -15,14 +16,17 @@ public class PlayerAgent_2_heatmap : Agent
 
     float movex = 0;
     float movez = 0;
-
     public int junk_collected = 0;
+    public int junk_area = 0;
     public Text count_text; //display junk collected
     public Text count_text2;
+
+    public Text time_text; 
     public bool isMoving;
+    public int junk_limit= 19;
     public GameObject hm_obj;
     public Vector3 stored_position = Vector3.zero;
-
+    public HouseScript house_script;
 
     //for agent definition:
     EnvironmentParameters m_resetParams;
@@ -36,8 +40,11 @@ public class PlayerAgent_2_heatmap : Agent
         m_resetParams = Academy.Instance.EnvironmentParameters;
         hm_render = hm_obj.GetComponent<HeatMapRenderer>();
         rb.velocity = new Vector3(2, 0, 2);
+        house_script = new HouseScript();
+
     }
 
+   
 
 
     public void SetRobot()
@@ -108,15 +115,28 @@ public class PlayerAgent_2_heatmap : Agent
             movex = 0f;
         }
 
-        
 
 
-        Vector3 v = (transform.forward * -movez *2f);
-        this.transform.Rotate(0, movex, 0);
-        rb.AddForce(v, ForceMode.VelocityChange);
-        
+        float value = hm_render.hm.GetMap()[ Convert.ToInt32( rb.transform.position.x),Convert.ToInt32(rb.transform.position.z)];
+
+        if (value < 1f)
+        {
+            //if the position is green
+            AddReward(0.01f);
+        }
+        else
+        {
+            AddReward(-(value / 100));
+        }
+
+
+        Vector3 v = (transform.forward * -movez);
+        this.transform.Rotate(0, movex*3f, 0);
+        rb.AddForce(v *speed);
+
         //set a negative reward for wasting time.
-        AddReward(-1f / MaxStep);
+        //this is for first run configuration
+        //AddReward(-1f / MaxStep);
 
     }
 
@@ -124,7 +144,7 @@ public class PlayerAgent_2_heatmap : Agent
 
 
 
-    public override void Heuristic(in ActionBuffers actionsOut)
+   /* public override void Heuristic(in ActionBuffers actionsOut)
     {
         float moving_x = Input.GetAxis("Horizontal");
         float moving_z = Input.GetAxis("Vertical");
@@ -132,7 +152,7 @@ public class PlayerAgent_2_heatmap : Agent
         var discreteActions = actionsOut.DiscreteActions;
         if (moving_x < 0)
         {
-            discreteActions[1] = 1;
+            discreteActions[1] = 2;
         }
         else if(moving_x == 0f)
         {
@@ -140,7 +160,7 @@ public class PlayerAgent_2_heatmap : Agent
         }
         else
         {
-            discreteActions[1] = 2;
+            discreteActions[1] = 1;
         }
 
         if (moving_z > 0)
@@ -151,7 +171,7 @@ public class PlayerAgent_2_heatmap : Agent
         {
             discreteActions[0] = 0;
         }
-    }
+    }*/
 
 
 
@@ -166,39 +186,31 @@ public class PlayerAgent_2_heatmap : Agent
     }
 
   
-    // Update is called once per frame
-    private void Update()
-    {
-        
-
-        
-        
-        if ((this.transform.GetChild(0).position.x - stored_position.x) < 1f && (this.transform.GetChild(0).position.x - stored_position.x) > -1f && (this.transform.GetChild(0).position.z - stored_position.z) < 1f && (this.transform.GetChild(0).position.z - stored_position.z) > -1f)
-        {
-            isMoving = false;
-        }
-        else
-        {
-            isMoving = true;
-            HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
-            hm_render.hm.AddPoint((int)((49 - rb.transform.position.x)), (int)((21 - rb.transform.position.z)));
-            /*Test for group of pixel
-            *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
-            */
-            hm_render.toUpdate = true;
-
-            stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
-        }
-        // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
-        // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
-
-    }
+    // Update is called once per frame 
     private void FixedUpdate()
     {
         if (rb.velocity.magnitude > maxSpeed)
         {
             rb.velocity = rb.velocity.normalized * maxSpeed;
         }
+        if ((this.transform.GetChild(0).position.x - stored_position.x) < 1f && (this.transform.GetChild(0).position.x - stored_position.x) > -1f && (this.transform.GetChild(0).position.z - stored_position.z) < 1f && (this.transform.GetChild(0).position.z - stored_position.z) > -1f)
+            {
+              isMoving = false;
+        }
+            else
+            {
+                isMoving = true;
+                HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
+                hm_render.hm.AddPoint((int)rb.transform.position.x, (int)rb.transform.position.z);
+                /*Test for group of pixel
+                *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
+                */
+                hm_render.toUpdate = true;
+
+                stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
+            }
+            // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
+            // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
     }
 
 
@@ -223,10 +235,19 @@ public class PlayerAgent_2_heatmap : Agent
         {
             Debug.Log("Munnezza presa");
             GameObject app = other.gameObject;
-            Destroy(app);
+            app.SetActive(false);
             junk_collected += 1;
+            junk_area += 1;
             setCountText(junk_collected);
-            AddReward(1f);
+            AddReward(10f);
+
+            if (junk_area >= junk_limit)
+            {
+                junk_area = 0;
+                house_script.resetTrash();
+                hm_render.hm.InitializeMap();
+                time_text.GetComponent<TimeController>().setGame(false);
+            }
         }
     }
 

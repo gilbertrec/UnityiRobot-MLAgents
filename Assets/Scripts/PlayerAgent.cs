@@ -17,13 +17,15 @@ public class PlayerAgent : Agent
     float movez = 0;
 
     public int junk_collected = 0;
+    public int junk_area = 0;
     public Text count_text; //display junk collected
     public Text count_text2;
     public bool isMoving;
     public GameObject hm_obj;
     public Vector3 stored_position = Vector3.zero;
-
-
+    public HouseScript house_script;
+    public int active_display=1;
+    //public Camera[] cameras;
     //for agent definition:
     EnvironmentParameters m_resetParams;
     HeatMapRenderer hm_render;
@@ -32,10 +34,12 @@ public class PlayerAgent : Agent
     /* First Definition Part of the Agent*/
     public override void Initialize()
     {
+      //  cameras = Camera.allCameras;
         rb = this.GetComponent<Rigidbody>();
         m_resetParams = Academy.Instance.EnvironmentParameters;
         hm_render = hm_obj.GetComponent<HeatMapRenderer>();
         rb.velocity = new Vector3(2, 0, 2);
+        house_script = new HouseScript();
     }
 
 
@@ -111,12 +115,13 @@ public class PlayerAgent : Agent
         
 
 
-        Vector3 v = (transform.forward * -movez *2f);
-        this.transform.Rotate(0, movex, 0);
-        rb.AddForce(v, ForceMode.VelocityChange);
+        Vector3 v = (transform.forward * -movez);
+        this.transform.Rotate(0, -movex*3f, 0);
+        rb.AddForce(v *speed);
         
         //set a negative reward for wasting time.
         AddReward(-1f / MaxStep);
+        Debug.Log(-1f / MaxStep);
 
     }
 
@@ -169,26 +174,32 @@ public class PlayerAgent : Agent
     // Update is called once per frame
     private void Update()
     {
-        
-
-        
-        
-        if ((this.transform.GetChild(0).position.x - stored_position.x) < 1f && (this.transform.GetChild(0).position.x - stored_position.x) > -1f && (this.transform.GetChild(0).position.z - stored_position.z) < 1f && (this.transform.GetChild(0).position.z - stored_position.z) > -1f)
+        /*if (Input.GetKeyDown("space"))
         {
-            isMoving = false;
-        }
-        else
-        {
-            isMoving = true;
-            HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
-            hm_render.hm.AddPoint((int)((49 - rb.transform.position.x)), (int)((21 - rb.transform.position.z)));
-            /*Test for group of pixel
-            *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
-            */
-            hm_render.toUpdate = true;
 
-            stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
-        }
+            if (active_display < 3)
+            {
+                active_display += 1;
+            }
+            else
+            {
+                active_display = 1;
+            }
+            for(int i = 0; i < 3; i++)
+            {
+                if (i+1 == active_display)
+                {
+                    cameras[i].enabled = true;
+                }
+                else
+                {
+                    cameras[i].enabled = false;
+                }
+            }
+        }*/
+        
+        
+       
         // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
         // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
 
@@ -199,6 +210,24 @@ public class PlayerAgent : Agent
         {
             rb.velocity = rb.velocity.normalized * maxSpeed;
         }
+        if ((this.transform.GetChild(0).position.x - stored_position.x) < 1f && (this.transform.GetChild(0).position.x - stored_position.x) > -1f && (this.transform.GetChild(0).position.z - stored_position.z) < 1f && (this.transform.GetChild(0).position.z - stored_position.z) > -1f)
+        {
+            isMoving = false;
+        }
+        else
+        {
+            isMoving = true;
+            HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
+            hm_render.hm.AddPoint((int)((rb.transform.position.x)), (int)((rb.transform.position.z)));
+            /*Test for group of pixel
+            *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
+            */
+            hm_render.toUpdate = true;
+
+            stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
+        }
+
+
     }
 
 
@@ -223,11 +252,20 @@ public class PlayerAgent : Agent
         {
             Debug.Log("Munnezza presa");
             GameObject app = other.gameObject;
-            Destroy(app);
+            app.SetActive(false);
             junk_collected += 1;
+            junk_area += 1;
             setCountText(junk_collected);
             AddReward(1f);
         }
+
+        if (junk_area >= 21)
+        {
+            junk_area = 0;
+            house_script.resetTrash();
+            hm_render.hm.InitializeMap();
+        }
+
     }
 
     void setCountText(int number)

@@ -18,7 +18,7 @@ public class HeatMapRenderer : MonoBehaviour
         GradientAlphaKey[] alphaKey;
 
         Gradient gradient = new Gradient();
-        hm = new Heatmap(99, 70);
+        hm = new Heatmap(99, 72);
         // Populate the color keys at the relative time 0 and 1 (0 and 100%)
         colorKey = new GradientColorKey[2];
         colorKey[0].color = Color.red;

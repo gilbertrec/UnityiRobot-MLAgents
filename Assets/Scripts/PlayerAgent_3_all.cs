@@ -4,6 +4,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using UnityEngine.UI;
+using System;
 
 public class PlayerAgent_3_all : Agent
 {
@@ -17,24 +18,26 @@ public class PlayerAgent_3_all : Agent
     float movez = 0;
 
     public int junk_collected = 0;
+    public int junk_area;
     public Text count_text; //display junk collected
     public Text count_text2;
     public bool isMoving;
     public GameObject hm_obj;
     public Vector3 stored_position = Vector3.zero;
-
+    public HouseScript house_script;
 
     //for agent definition:
     EnvironmentParameters m_resetParams;
-    HeatMapRenderer hm_render;
+    HeatMapRendererv2 hm_render;
     public bool useVecObs;
 
     /* First Definition Part of the Agent*/
     public override void Initialize()
     {
+        house_script = new HouseScript();
         rb = this.GetComponent<Rigidbody>();
         m_resetParams = Academy.Instance.EnvironmentParameters;
-        hm_render = hm_obj.GetComponent<HeatMapRenderer>();
+        hm_render = hm_obj.GetComponent<HeatMapRendererv2>();
         rb.velocity = new Vector3(2, 0, 2);
     }
 
@@ -47,7 +50,7 @@ public class PlayerAgent_3_all : Agent
         var scale = m_resetParams.GetWithDefault("scale", 1.0f);
         this.transform.localScale = new Vector3(scale, scale, scale);
     }
-  
+
 
     public override void CollectObservations(VectorSensor sensor)
     {
@@ -76,46 +79,57 @@ public class PlayerAgent_3_all : Agent
          * 
          * 
          */
-         
 
 
+        //forward
 
         if (vectorAction[0] == 1)
         {
             movez = 1f;
+            movex = 0;
         }
+
+        //backward
         else if (vectorAction[0] == 2)
         {
             movez = -1f;
-        }else
+            movex = 0;
+        }
+
+        //stopping
+        else if (vectorAction[0] == 0)
         {
             movez = 0f;
+            movex = 0;
         }
 
 
         //rotation
 
-        if (vectorAction[1] == 1)
+        //right
+        else if (vectorAction[0] == 3)
         {
             movex = 1f;
+            movez = 0;
         }
-        else if (vectorAction[1] == 2)
+        //left
+        else if (vectorAction[0] == 4)
         {
             movex = -1f;
+            movez = 0;
         }
-        else if (vectorAction[1] == 0)
-        {
-            movex = 0f;
-        }
+
+
 
         
 
 
-        Vector3 v = (transform.forward * -movez *2f);
+        Vector3 v = (transform.forward * movez);
         this.transform.Rotate(0, movex, 0);
-        rb.AddForce(v, ForceMode.VelocityChange);
-        
+        rb.AddForce(v * speed);
+
         //set a negative reward for wasting time.
+        //this is for first run configuration
         AddReward(-1f / MaxStep);
 
     }
@@ -124,34 +138,49 @@ public class PlayerAgent_3_all : Agent
 
 
 
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
-        float moving_x = Input.GetAxis("Horizontal");
-        float moving_z = Input.GetAxis("Vertical");
-        //Player input
-        var discreteActions = actionsOut.DiscreteActions;
-        if (moving_x < 0)
-        {
-            discreteActions[1] = 1;
+     public override void Heuristic(in ActionBuffers actionsOut)
+     {
+         float moving_x = Input.GetAxis("Horizontal");
+         float moving_z = Input.GetAxis("Vertical");
+         //Player input
+         var discreteActions = actionsOut.DiscreteActions;
+         if (moving_x < 0)
+         {
+             discreteActions[0] = 4;
+         }
+         else if(moving_x == 0f)
+         {
+            if (moving_z == 1f)
+            {
+                discreteActions[0] = 2;
+            }
+            else if (moving_z == -1f)
+            {
+                discreteActions[0] = 1;
+            }
+            else if (moving_z == 0f)
+            {
+                discreteActions[0] = 0;
+            }
         }
-        else if(moving_x == 0f)
-        {
-            discreteActions[1] = 0;
-        }
-        else
-        {
-            discreteActions[1] = 2;
-        }
+         else
+         {
+             discreteActions[0] = 3;
+         }
 
-        if (moving_z > 0)
-        {
-            discreteActions[0] = 1;
-        }
-        else if (moving_z == 0f)
+        /*if (moving_z ==1f)
+         {
+             discreteActions[0] = 1;
+         }
+         else if (moving_z == -1f)
+         {
+             discreteActions[0] = 2;
+         }
+         else if (moving_z == 0f)
         {
             discreteActions[0] = 0;
-        }
-    }
+        }*/
+     }
 
 
 
@@ -162,17 +191,20 @@ public class PlayerAgent_3_all : Agent
 
     public void Reset()
     {
+        /*junk_area = 0;
+        house_script.resetTrash();
+        hm_render.hm.InitializeMap();
+        */
+        }
 
-    }
 
-  
-    // Update is called once per frame
-    private void Update()
+    // Update is called once per frame 
+    private void FixedUpdate()
     {
-        
-
-        
-        
+        if (rb.velocity.magnitude > maxSpeed)
+        {
+            rb.velocity = rb.velocity.normalized * maxSpeed;
+        }
         if ((this.transform.GetChild(0).position.x - stored_position.x) < 1f && (this.transform.GetChild(0).position.x - stored_position.x) > -1f && (this.transform.GetChild(0).position.z - stored_position.z) < 1f && (this.transform.GetChild(0).position.z - stored_position.z) > -1f)
         {
             isMoving = false;
@@ -180,25 +212,30 @@ public class PlayerAgent_3_all : Agent
         else
         {
             isMoving = true;
-            HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
-            hm_render.hm.AddPoint((int)((49 - rb.transform.position.x)), (int)((21 - rb.transform.position.z)));
+            HeatMapRendererv2 hm_render = hm_obj.GetComponent<HeatMapRendererv2>();
+            hm_render.hm.AddPoint((int)rb.transform.position.x, (int)rb.transform.position.z);
             /*Test for group of pixel
             *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
             */
             hm_render.toUpdate = true;
 
             stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
+            float value = hm_render.hm.GetMap()[Convert.ToInt32(this.transform.position.x), Convert.ToInt32(rb.transform.position.z)];
+            Debug.Log("GetMap"+":"+Convert.ToInt32(this.transform.position.x)+","+ Convert.ToInt32(rb.transform.position.z));
+            if (value < 0.1f)
+            {
+                //if the position is green
+                AddReward(0.05f);
+            }
+            else
+            {
+                AddReward(-(value / 1000));
+                //0.1,0.5,1
+                //0.0001,0.0005,0.001
+            }
         }
         // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
         // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
-
-    }
-    private void FixedUpdate()
-    {
-        if (rb.velocity.magnitude > maxSpeed)
-        {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
-        }
     }
 
 
@@ -208,13 +245,13 @@ public class PlayerAgent_3_all : Agent
         if (collision.collider.tag.Equals("Wall"))
         {
             AddReward(-0.001f);
-           
+
         }
         if (collision.collider.tag.Equals("Obstacle"))
         {
             AddReward(-0.003f);
         }
-        
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -223,10 +260,18 @@ public class PlayerAgent_3_all : Agent
         {
             Debug.Log("Munnezza presa");
             GameObject app = other.gameObject;
-            Destroy(app);
+            app.SetActive(false);
             junk_collected += 1;
+            junk_area += 1;
             setCountText(junk_collected);
             AddReward(1f);
+
+            if(junk_area >= 21)
+            {
+                junk_area = 0;
+                house_script.resetTrash();
+                hm_render.hm.InitializeMap();
+            }
         }
     }
 

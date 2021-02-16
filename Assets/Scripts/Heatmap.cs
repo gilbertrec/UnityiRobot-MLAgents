@@ -20,7 +20,7 @@ public class Heatmap
         InitializeMap();
     }
 
-    void InitializeMap()
+    public void InitializeMap()
     {
         map = new float [width,height];
         for (int x = 0; x < width; x++)
@@ -73,7 +73,7 @@ public class Heatmap
         }
 
         tex.SetPixel(0, 0, new Color(0f, 0f, 1.0f, 1.0f));
-        tex.SetPixel(98, 69, new Color(0f, 0f, 1.0f, 1.0f));
+        tex.SetPixel(98, 69, new Color(0f, 1.0f, 1.0f, 1.0f));
         tex.Apply();
         return tex;
     }
