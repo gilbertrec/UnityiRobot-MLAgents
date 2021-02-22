@@ -257,7 +257,6 @@ MonoBehaviour:
   isMoving: 0
   hm_obj: {fileID: 0}
   stored_position: {x: 0, y: 0, z: 0}
-  useVecObs: 0
 --- !u!114 &1593757195481518969
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -56,28 +56,29 @@ public class Heatmapv2
         }
         map[x, y] = 1;
         
-        for (int i = -2; i < 3; i++)
+        for (int i = -2; i <= 2; i++)
         {
 
-            for (int j = -2; j < 3; j++)
+            for (int j = -2; j <= 2; j++)
             {
 
-                if (x + i >= 0 && x + i <= 197 && y + j >= 0 && y+ j <= 143)
+                if (x + i >= 0 && x + i < 297 && y + j >= 0 && y+ j <216 )
                 {
                     if (i != 0 || j != 0)
                     {
 
-                        if ((i != 2 && i != -2) && (j != 2 && j != -2))
+                        if ((i != 1 && i != -1) && (j != 1 && j != -1))
                         {
-                            //if first contour
-                            map[x + i, y + j] = Math.Max(0.5f, map[x + i, y + j]);
+                            //if second contour
+                            Debug.Log("Attenzione Gialloooooooooooooooooooooooo");
+                            map[x + i, y + j] = Math.Max(0.1f, map[x + i, y + j]);
 
             
                         }
                         else
                         {
-                            //if second contour
-                            map[x + i, y + j] = Math.Max(0.1f, map[x + i, y + j]);
+                            //if first contour
+                            map[x + i, y + j] = Math.Max(0.5f, map[x + i, y + j]);
                             
                         }
                     }

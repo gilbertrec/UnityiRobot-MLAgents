@@ -19,6 +19,7 @@ public class PlayerAgent_3_all : Agent
 
     public int junk_collected = 0;
     public int junk_area;
+    public int junk_limit = 15;
     public Text count_text; //display junk collected
     public Text count_text2;
     public bool isMoving;
@@ -60,6 +61,7 @@ public class PlayerAgent_3_all : Agent
         sensor.AddObservation(this.transform.position.z);
         sensor.AddObservation(this.rb.velocity.x);
         sensor.AddObservation(this.rb.velocity.z);
+        sensor.AddObservation(this.rb.rotation.y);
 
 
         //cannot do addObservation of a matrix, need to find something else
@@ -109,13 +111,13 @@ public class PlayerAgent_3_all : Agent
         //right
         else if (vectorAction[0] == 3)
         {
-            movex = 1f;
+            movex = 3f;
             movez = 0;
         }
         //left
         else if (vectorAction[0] == 4)
         {
-            movex = -1f;
+            movex = -3f;
             movez = 0;
         }
 
@@ -213,19 +215,20 @@ public class PlayerAgent_3_all : Agent
         {
             isMoving = true;
             HeatMapRendererv2 hm_render = hm_obj.GetComponent<HeatMapRendererv2>();
-            hm_render.hm.AddPoint((int)rb.transform.position.x, (int)rb.transform.position.z);
+            hm_render.hm.AddPoint((int)rb.transform.position.x*3, (int)rb.transform.position.z*3);
             /*Test for group of pixel
             *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
             */
             hm_render.toUpdate = true;
 
             stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
-            float value = hm_render.hm.GetMap()[Convert.ToInt32(this.transform.position.x), Convert.ToInt32(rb.transform.position.z)];
-            Debug.Log("GetMap"+":"+Convert.ToInt32(this.transform.position.x)+","+ Convert.ToInt32(rb.transform.position.z));
+            float value = hm_render.hm.GetMap()[Convert.ToInt32(this.transform.position.x*3), Convert.ToInt32(rb.transform.position.z*3)];
+            
             if (value < 0.1f)
             {
                 //if the position is green
-                AddReward(0.05f);
+                AddReward(0.03f);
+                Debug.Log("Added Reward");
             }
             else
             {
@@ -264,13 +267,17 @@ public class PlayerAgent_3_all : Agent
             junk_collected += 1;
             junk_area += 1;
             setCountText(junk_collected);
-            AddReward(1f);
+            AddReward(5f);
 
-            if(junk_area >= 21)
+            if(junk_area >= junk_limit)
             {
                 junk_area = 0;
                 house_script.resetTrash();
                 hm_render.hm.InitializeMap();
+            }
+            if (junk_limit < 39)
+            {
+                junk_limit++;
             }
         }
     }

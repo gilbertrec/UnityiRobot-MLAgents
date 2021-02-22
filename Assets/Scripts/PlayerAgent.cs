@@ -61,6 +61,7 @@ public class PlayerAgent : Agent
         sensor.AddObservation(this.transform.position.z);
         sensor.AddObservation(this.rb.velocity.x);
         sensor.AddObservation(this.rb.velocity.z);
+        sensor.AddObservation(this.rb.rotation.y);
 
 
         //cannot do addObservation of a matrix, need to find something else
@@ -80,36 +81,46 @@ public class PlayerAgent : Agent
          * 
          * 
          */
-         
 
 
+
+
+        //forward
 
         if (vectorAction[0] == 1)
         {
             movez = 1f;
+            movex = 0;
         }
+
+        //backward
         else if (vectorAction[0] == 2)
         {
             movez = -1f;
-        }else
+            movex = 0;
+        }
+
+        //stopping
+        else if (vectorAction[0] == 0)
         {
             movez = 0f;
+            movex = 0;
         }
 
 
         //rotation
 
-        if (vectorAction[1] == 1)
+        //right
+        else if (vectorAction[0] == 3)
         {
-            movex = 1f;
+            movex = 3f;
+            movez = 0;
         }
-        else if (vectorAction[1] == 2)
+        //left
+        else if (vectorAction[0] == 4)
         {
-            movex = -1f;
-        }
-        else if (vectorAction[1] == 0)
-        {
-            movex = 0f;
+            movex = -3f;
+            movez = 0;
         }
 
         
@@ -121,7 +132,7 @@ public class PlayerAgent : Agent
         
         //set a negative reward for wasting time.
         AddReward(-1f / MaxStep);
-        Debug.Log(-1f / MaxStep);
+
 
     }
 
@@ -236,7 +247,7 @@ public class PlayerAgent : Agent
     {
         if (collision.collider.tag.Equals("Wall"))
         {
-            AddReward(-0.001f);
+            AddReward(-0.003f);
            
         }
         if (collision.collider.tag.Equals("Obstacle"))
@@ -256,7 +267,7 @@ public class PlayerAgent : Agent
             junk_collected += 1;
             junk_area += 1;
             setCountText(junk_collected);
-            AddReward(1f);
+            AddReward(5f);
         }
 
         if (junk_area >= 21)

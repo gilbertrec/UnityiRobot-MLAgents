@@ -12,7 +12,7 @@ public class TimeController : MonoBehaviour
     void Start()
     {
         setGame(true);
-        Time.timeScale=1.0f;
+       // Time.timeScale=1.0f;
     }
 
     // Update is called once per frame

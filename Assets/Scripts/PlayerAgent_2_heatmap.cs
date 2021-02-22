@@ -41,7 +41,6 @@ public class PlayerAgent_2_heatmap : Agent
         hm_render = hm_obj.GetComponent<HeatMapRenderer>();
         rb.velocity = new Vector3(2, 0, 2);
         house_script = new HouseScript();
-
     }
 
    
@@ -83,60 +82,58 @@ public class PlayerAgent_2_heatmap : Agent
          * 
          * 
          */
-         
 
 
+        //forward
 
         if (vectorAction[0] == 1)
         {
             movez = 1f;
+            movex = 0;
         }
+
+        //backward
         else if (vectorAction[0] == 2)
         {
             movez = -1f;
-        }else
+            movex = 0;
+        }
+
+        //stopping
+        else if (vectorAction[0] == 0)
         {
             movez = 0f;
+            movex = 0;
         }
 
 
         //rotation
 
-        if (vectorAction[1] == 1)
+        //right
+        else if (vectorAction[0] == 3)
         {
-            movex = 1f;
+            movex = 3f;
+            movez = 0;
         }
-        else if (vectorAction[1] == 2)
+        //left
+        else if (vectorAction[0] == 4)
         {
-            movex = -1f;
-        }
-        else if (vectorAction[1] == 0)
-        {
-            movex = 0f;
-        }
-
-
-
-        float value = hm_render.hm.GetMap()[ Convert.ToInt32( rb.transform.position.x),Convert.ToInt32(rb.transform.position.z)];
-
-        if (value < 1f)
-        {
-            //if the position is green
-            AddReward(0.01f);
-        }
-        else
-        {
-            AddReward(-(value / 100));
+            movex = -3f;
+            movez = 0;
         }
 
 
-        Vector3 v = (transform.forward * -movez);
-        this.transform.Rotate(0, movex*3f, 0);
-        rb.AddForce(v *speed);
+
+        
+
+
+        Vector3 v = (transform.forward * movez);
+        this.transform.Rotate(0, movex, 0);
+        rb.AddForce(v * speed);
 
         //set a negative reward for wasting time.
         //this is for first run configuration
-        //AddReward(-1f / MaxStep);
+       // AddReward(-1f / MaxStep);
 
     }
 
@@ -199,8 +196,14 @@ public class PlayerAgent_2_heatmap : Agent
         }
             else
             {
+                
                 isMoving = true;
-                HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
+                //Getting the map actual value for getting the reward
+            HeatMapRenderer hm_render = hm_obj.GetComponent<HeatMapRenderer>();
+                float reward =hm_render.hm.GetPoint((int)rb.transform.position.x, (int)rb.transform.position.z);
+                
+                
+                Debug.Log(reward);
                 hm_render.hm.AddPoint((int)rb.transform.position.x, (int)rb.transform.position.z);
                 /*Test for group of pixel
                 *hm_render.hm.AddPoint((int)((49-rb.transform.position.x)/2), (int)((21-rb.transform.position.z)/2));
@@ -208,7 +211,18 @@ public class PlayerAgent_2_heatmap : Agent
                 hm_render.toUpdate = true;
 
                 stored_position.Set(this.transform.GetChild(0).position.x, 0, this.transform.GetChild(0).position.z);
+            
+            if (reward < 1f)
+            {
+               
             }
+            else
+            {
+                AddReward(-(1 / 1000));
+                //0.1,0.5,1
+                //0.0001,0.0005,0.001
+            }
+        }
             // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
             // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
     }
@@ -219,7 +233,7 @@ public class PlayerAgent_2_heatmap : Agent
     {
         if (collision.collider.tag.Equals("Wall"))
         {
-            AddReward(-0.001f);
+            AddReward(-0.003f);
            
         }
         if (collision.collider.tag.Equals("Obstacle"))
@@ -239,7 +253,7 @@ public class PlayerAgent_2_heatmap : Agent
             junk_collected += 1;
             junk_area += 1;
             setCountText(junk_collected);
-            AddReward(10f);
+            AddReward(5f);
 
             if (junk_area >= junk_limit)
             {
