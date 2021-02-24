@@ -37,6 +37,6 @@ public class MainMenuButtons : MonoBehaviour
     }
     
     public void LoadScene3(){
-        SceneManager.LoadScene("Scene3_v2");
+        SceneManager.LoadScene("Scene3_v3");
     }
 }

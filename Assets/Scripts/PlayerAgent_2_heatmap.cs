@@ -28,6 +28,9 @@ public class PlayerAgent_2_heatmap : Agent
     public Vector3 stored_position = Vector3.zero;
     public HouseScript house_script;
 
+    public int active_display = 1;
+    public Camera[] cameras;
+
     //for agent definition:
     EnvironmentParameters m_resetParams;
     HeatMapRenderer hm_render;
@@ -41,6 +44,17 @@ public class PlayerAgent_2_heatmap : Agent
         hm_render = hm_obj.GetComponent<HeatMapRenderer>();
         rb.velocity = new Vector3(2, 0, 2);
         house_script = new HouseScript();
+        for (int i = 0; i < 3; i++)
+        {
+            if (i + 1 == active_display)
+            {
+                cameras[i].enabled = true;
+            }
+            else
+            {
+                cameras[i].enabled = false;
+            }
+        }
     }
 
    
@@ -227,7 +241,38 @@ public class PlayerAgent_2_heatmap : Agent
             // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown("space"))
+        {
 
+            if (active_display < 3)
+            {
+                active_display += 1;
+            }
+            else
+            {
+                active_display = 1;
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                if (i + 1 == active_display)
+                {
+                    cameras[i].enabled = true;
+                }
+                else
+                {
+                    cameras[i].enabled = false;
+                }
+            }
+        }
+
+
+
+        // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
+        // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
+
+    }
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -261,6 +306,10 @@ public class PlayerAgent_2_heatmap : Agent
                 house_script.resetTrash();
                 hm_render.hm.InitializeMap();
                 time_text.GetComponent<TimeController>().setGame(false);
+                Results.current_time = time_text.GetComponent<TimeController>().currentTime;
+                time_text.GetComponent<TimeController>().currentTime = 0f;
+                Results.n_junk = junk_collected;
+                UnityEngine.SceneManagement.SceneManager.LoadScene("Scene_finished");
             }
         }
     }

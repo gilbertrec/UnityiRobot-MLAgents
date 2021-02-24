@@ -20,12 +20,18 @@ public class PlayerAgent_3_all : Agent
     public int junk_collected = 0;
     public int junk_area;
     public int junk_limit = 15;
+
     public Text count_text; //display junk collected
     public Text count_text2;
+    public Text time_text;
+
     public bool isMoving;
     public GameObject hm_obj;
     public Vector3 stored_position = Vector3.zero;
     public HouseScript house_script;
+
+    public int active_display = 1;
+    public Camera[] cameras;
 
     //for agent definition:
     EnvironmentParameters m_resetParams;
@@ -40,6 +46,17 @@ public class PlayerAgent_3_all : Agent
         m_resetParams = Academy.Instance.EnvironmentParameters;
         hm_render = hm_obj.GetComponent<HeatMapRendererv2>();
         rb.velocity = new Vector3(2, 0, 2);
+        for (int i = 0; i < 3; i++)
+        {
+            if (i + 1 == active_display)
+            {
+                cameras[i].enabled = true;
+            }
+            else
+            {
+                cameras[i].enabled = false;
+            }
+        }
     }
 
 
@@ -256,7 +273,38 @@ public class PlayerAgent_3_all : Agent
         }
 
     }
+    private void Update()
+    {
+        if (Input.GetKeyDown("space"))
+        {
 
+            if (active_display < 3)
+            {
+                active_display += 1;
+            }
+            else
+            {
+                active_display = 1;
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                if (i + 1 == active_display)
+                {
+                    cameras[i].enabled = true;
+                }
+                else
+                {
+                    cameras[i].enabled = false;
+                }
+            }
+        }
+
+
+
+        // Debug.Log("Offset X:" + (this.transform.GetChild(0).position.x, stored_position.x));
+        // Debug.Log("Offset Z:" + (this.transform.GetChild(0).position.z, stored_position.z));
+
+    }
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag.Equals("Junk"))
@@ -274,6 +322,11 @@ public class PlayerAgent_3_all : Agent
                 junk_area = 0;
                 house_script.resetTrash();
                 hm_render.hm.InitializeMap();
+                time_text.GetComponent<TimeController>().setGame(false);
+                Results.current_time = time_text.GetComponent<TimeController>().currentTime;
+                time_text.GetComponent<TimeController>().currentTime = 0f;
+                Results.n_junk = junk_collected;
+                UnityEngine.SceneManagement.SceneManager.LoadScene("Scene_finished");
             }
             if (junk_limit < 39)
             {

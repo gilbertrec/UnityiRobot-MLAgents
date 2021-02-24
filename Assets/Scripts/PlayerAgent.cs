@@ -20,12 +20,14 @@ public class PlayerAgent : Agent
     public int junk_area = 0;
     public Text count_text; //display junk collected
     public Text count_text2;
+    public Text time_text;
+
     public bool isMoving;
     public GameObject hm_obj;
     public Vector3 stored_position = Vector3.zero;
     public HouseScript house_script;
     public int active_display=1;
-    //public Camera[] cameras;
+    public Camera[] cameras;
     //for agent definition:
     EnvironmentParameters m_resetParams;
     HeatMapRenderer hm_render;
@@ -40,6 +42,17 @@ public class PlayerAgent : Agent
         hm_render = hm_obj.GetComponent<HeatMapRenderer>();
         rb.velocity = new Vector3(2, 0, 2);
         house_script = new HouseScript();
+        for (int i = 0; i < 3; i++)
+        {
+            if (i + 1 == active_display)
+            {
+                cameras[i].enabled = true;
+            }
+            else
+            {
+                cameras[i].enabled = false;
+            }
+        }
     }
 
 
@@ -185,7 +198,7 @@ public class PlayerAgent : Agent
     // Update is called once per frame
     private void Update()
     {
-        /*if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown("space"))
         {
 
             if (active_display < 3)
@@ -207,7 +220,7 @@ public class PlayerAgent : Agent
                     cameras[i].enabled = false;
                 }
             }
-        }*/
+        }
         
         
        
@@ -275,6 +288,11 @@ public class PlayerAgent : Agent
             junk_area = 0;
             house_script.resetTrash();
             hm_render.hm.InitializeMap();
+            time_text.GetComponent<TimeController>().setGame(false);
+            Results.current_time = time_text.GetComponent<TimeController>().currentTime;
+            time_text.GetComponent<TimeController>().currentTime = 0f;
+            Results.n_junk = junk_collected;
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Scene_finished");
         }
 
     }
